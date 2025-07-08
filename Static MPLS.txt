@@ -1,0 +1,590 @@
+STATIC MPLS :
+=============
+
+IP Assignement 
+---------------
+
+R1
+
+en
+config t
+
+hostname PE-1
+
+int e0/0
+
+ip add 12.1.1.1  255.255.255.0 
+
+no shut 
+
+exit
+
+int e0/1
+
+ip add 15.1.1.1  255.255.255.0 
+
+no shut 
+
+exit
+
+int e0/2
+
+ip add 16.1.1.1  255.255.255.0 
+
+no shut 
+
+exit
+
+int lo 1
+
+ip add 1.1.1.1 255.255.255.255 
+
+-------------------------------------------------
+
+R2
+
+en
+config t
+
+hostname PR-1
+
+int fa0/0
+
+ip add 12.1.1.2  255.255.255.0 
+
+no shut 
+
+exit
+
+int fa0/1
+
+ip add 23.1.1.2  255.255.255.0 
+
+no shut 
+
+exit
+
+int lo 1
+
+ip add 2.2.2.2 255.255.255.255  
+
+
+-----------------------------------------
+
+
+R3
+
+en
+config t
+
+hostname PR-2
+
+int fa0/0
+
+ip add 23.1.1.3  255.255.255.0 
+
+no shut 
+
+exit
+
+int fa0/1
+
+ip add 34.1.1.3  255.255.255.0 
+
+no shut 
+
+exit
+
+int lo 1
+
+ip add 3.3.3.3 255.255.255.255  
+
+
+-----------------------------------------------
+
+R4
+--
+
+en
+config t
+
+hostname PE-2 
+
+int e0/0
+
+ip add 34.1.1.4  255.255.255.0 
+
+no shut 
+
+exit
+
+int e0/1
+
+ip add 47.1.1.4  255.255.255.0 
+
+no shut 
+
+exit
+
+int e0/2
+
+ip add 48.1.1.4  255.255.255.0 
+
+no shut 
+
+exit
+
+int lo 1
+
+ip add 4.4.4.4 255.255.255.255 
+
+----------------------------------------
+
+R5
+
+en
+
+config t
+
+hostname CE1-side-A
+
+int fa0/0
+
+ip add 15.1.1.5 255.255.255.0
+
+no shut 
+
+int lo 1
+
+ip add 192.168.1.1 255.255.255.0
+
+int lo 2
+
+ip add 5.5.5.5 255.255.255.255 
+
+
+
+
+
+------------------------------------------ 
+R6
+
+en
+
+config t
+
+hostname CE2-side-A
+
+int fa0/0
+
+ip add 16.1.1.6 255.255.255.0
+
+no shut 
+
+int lo 1
+
+no ip add 192.168.1.0 255.255.0.0
+
+ip add 192.168.1.1 255.255.255.0
+
+int lo 2
+
+ip add 6.6.6.6 255.255.255.255 
+
+
+----------------------------------------------------
+
+R7
+
+en
+
+config t
+
+hostname CE1-side-B
+
+int fa0/0
+
+ip add 47.1.1.7 255.255.255.0
+
+no shut 
+
+int lo 1
+
+no ip add 192.168.2.0 255.255.0.0
+
+ip add 192.168.2.1 255.255.255.0
+
+int lo 2
+
+ip add 7.7.7.7  255.255.255.255
+
+----------------------------------------------
+
+R8
+
+en
+
+config t
+
+hostname CE2-side-B
+
+int fa0/0
+
+ip add 48.1.1.8 255.255.255.0
+
+no shut 
+
+int lo 1
+
+no ip add 192.168.2.0 255.255.0.0
+
+ip add 192.168.2.1 255.255.255.0
+
+int lo 2
+
+ip add 8.8.8.8  255.255.255.255
+
+===========================================================================================================================================================
+
+VRF Configuration : 
+===
+
+R1
+
+PE-1 
+
+ip vrf CE1-side-A
+
+rd 5:5 
+
+route-target export 500:500
+
+route-target import 700:700
+
+exit
+
+
+ip vrf CE2-side-A
+
+rd 6:6 
+
+route-target export 600:600
+
+route-target import 800:800
+
+exit 
+
+
+int e0/1
+
+ip vrf forwarding CE1-side-A
+
+ip add 15.1.1.1 255.255.255.0
+
+exit
+
+int e0/2
+
+ip vrf forwarding CE2-side-A
+
+ip add 16.1.1.1 255.255.255.0
+
+exit
+
+
+
+-----------------------------------------------------
+
+R4
+
+PE-2 
+
+ip vrf CE1-side-B
+
+no rd 7:7 
+
+rd 5:5
+
+route-target export 700:700
+
+route-target import 500:500
+
+exit
+
+
+ip vrf CE2-side-B
+
+no rd 8:8 
+
+rd 6:6
+
+route-target export 800:800
+
+route-target import 600:600
+
+exit 
+
+
+int e0/1
+
+ip vrf forwarding CE1-side-B
+
+ip add 47.1.1.4 255.255.255.0
+
+exit
+
+int e0/2
+
+ip vrf forwarding CE2-side-B
+
+ip add 48.1.1.4 255.255.255.0
+
+exit
+
+===============================================
+
+OSPF Configuration 
+==================
+
+R1 || PE-1 
+
+int e0/0
+
+ip ospf network point-to-point
+
+exit 
+
+router ospf 10 
+
+network 12.1.1.0 0.0.0.255 area 0 
+
+network 1.1.1.1 0.0.0.0 area 0 
+
+exit
+
+-----------------------------------------------
+
+R2 || PR1 
+
+int fa0/0
+
+ip ospf network point-to-point
+
+int fa0/1
+
+ip ospf network point-to-point
+
+exit 
+
+router ospf 10 
+
+network 12.1.1.0 0.0.0.255 area 0 
+
+network 23.1.1.0 0.0.0.255 area 0
+
+network 2.2.2.2 0.0.0.0 area 0 
+
+exit
+
+------------------------
+
+R3 || PR-3 
+
+
+int fa0/0
+
+ip ospf network point-to-point
+
+int fa0/1
+
+ip ospf network point-to-point
+
+exit 
+
+router ospf 10 
+
+network 23.1.1.0 0.0.0.255 area 0
+
+network 34.1.1.0 0.0.0.255 area 0 
+
+network 3.3.3.3 0.0.0.0 area 0 
+
+exit
+
+------------------------------------------------------------
+
+R4 || PE-2
+
+int e0/0
+
+ip ospf network point-to-point
+
+exit 
+
+router ospf 10 
+
+network 34.1.1.0 0.0.0.255 area 0
+
+network 4.4.4.4 0.0.0.0 area 0 
+
+exit
+
+========================================================
+
+mpls configuration 
+==================
+
+R1 || PE-1
+
+
+mpls label range 100 200
+
+
+router ospf 10
+
+mpls ldp autoconfig area 0 
+
+exit
+
+
+
+router bgp 100
+
+neighbor 4.4.4.4 remote-as 100 
+neighbor 4.4.4.4 update-source loopback 1 
+
+address-family vpnv4
+
+neighbor 4.4.4.4 activate 
+
+exit
+
+
+-----------------------------------
+
+R2 || PR-1 
+
+mpls label range 200 300
+
+
+router ospf 10
+
+mpls ldp autoconfig area 0 
+
+exit
+
+--------------------------------------------
+
+R3 || PR-2
+
+mpls label range 300 400
+
+
+router ospf 10
+
+mpls ldp autoconfig area 0 
+
+exit
+
+-------------------------------------------
+
+R4 || PE-2
+
+mpls label range 400 500
+
+
+router ospf 10
+
+mpls ldp autoconfig area 0 
+
+exit
+
+
+router bgp 100
+
+neighbor 1.1.1.1 remote-as 100 
+neighbor 1.1.1.1 update-source loopback 1 
+
+address-family vpnv4
+
+neighbor 1.1.1.1 activate 
+
+===================================================
+
+Static routing 
+--------------
+
+R1 
+
+ip route vrf CE1-side-A 192.168.1.0 255.255.255.0 15.1.1.5
+
+ip route vrf CE2-side-A 192.168.1.0 255.255.255.0 16.1.1.6
+
+R5
+
+ip route 192.168.2.0 255.255.255.0 15.1.1.1 
+
+R6
+
+ip route 192.168.2.0 255.255.255.0 16.1.1.1 
+
+R4
+==
+
+ip route vrf CE1-side-B 192.168.2.0 255.255.255.0 47.1.1.7
+
+ip route vrf CE2-side-B 192.168.2.0 255.255.255.0 48.1.1.8
+
+
+R7
+
+ip route 192.168.1.0 255.255.255.0 47.1.1.4 
+
+R8 
+
+no ip route 192.168.2.0 255.255.255.0 48.1.1.4
+
+ip route 192.168.1.0 255.255.255.0 48.1.1.4
+
+
+
+
+
+============================================================
+
+Redistribution 
+
+R1
+
+router bgp 100
+
+address-family ipv4 unicast vrf CE1-side-A
+
+redistribute static 
+
+exit
+
+address-family ipv4 unicast vrf CE2-side-A
+
+redistribute static 
+
+R4 
+==
+
+router bgp 100
+
+address-family ipv4 unicast vrf CE1-side-B
+
+redistribute static 
+
+exit
+
+address-family ipv4 unicast vrf CE2-side-B
+
+redistribute static 
+
+
+
+
+
+
